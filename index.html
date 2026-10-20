@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem E-Procurement & Inventory Management System</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        corporate: {
+                            900: '#0F172A',
+                            800: '#1E293B',
+                            700: '#334155',
+                            600: '#475569',
+                            50: '#F8FAFC'
+                        },
+                        accent: {
+                            600: '#4F46E5',
+                            700: '#4338CA',
+                            50: '#EEF2FF'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbar and minor tweaks */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(8px); }
+    </style>
+</head>
+<body class="h-full flex flex-col font-sans text-slate-800 antialiased selection:bg-indigo-500 selection:text-white">
+
+    <!-- Top Bar Navigation -->
+    <header class="bg-corporate-900 text-white sticky top-0 z-40 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Brand Logo & Title -->
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-indigo-600 rounded-xl overflow-hidden flex items-center justify-center font-bold text-white shadow-lg shadow-indigo-500/30">
+                        <img src="3b67c524-ff27-46b6-8913-0158d34bca9e.jpg" alt="PT Solusi Teknologika Utama Logo" class="w-full h-full object-cover">
+                    </div>
+                    <div>
+                        <span class="font-bold text-lg tracking-tight block leading-none">PT Solusi Teknologika Utama</span>
+                        <span class="text-xs text-indigo-300 font-medium">Inovasi & Kemitraan Menuju Unggul</span>
+                    </div>
+                </div>
+
+                <!-- Role Selector & User Profile -->
+                <div class="flex items-center space-x-3 sm:space-x-6">
+                    <!-- Global Search -->
+                    <div class="hidden md:block relative w-64">
+                        <input type="text" id="globalSearch" placeholder="Cari barang, PO, pengajuan..." 
+                            class="w-full pl-9 pr-4 py-1.5 bg-slate-800 text-slate-200 text-xs rounded-lg border border-slate-700 focus:outline-none focus:border-indigo-500 transition-colors">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+                    </div>
+
+                    <!-- Role Switcher Dropdown (Simulating Multi-Actor Access) -->
+                    <div class="flex items-center bg-slate-800 rounded-lg p-1 border border-slate-700">
+                        <span class="text-xs text-slate-400 px-2 font-medium hidden sm:inline"><i class="fa-solid fa-user-gear me-1"></i> Role:</span>
+                        <select id="roleSelector" onchange="switchRole(this.value)" class="bg-slate-900 text-white text-xs rounded border-none font-semibold focus:ring-1 focus:ring-indigo-500 px-2 py-1 cursor-pointer">
+                            <option value="karyawan">Karyawan</option>
+                            <option value="manager" selected>Manager</option>
+                            <option value="gudang">Tim Gudang</option>
+                            <option value="finance">Procurement & Finance</option>
+                            <option value="direksi">Direksi</option>
+                        </select>
+                    </div>
+
+                    <!-- User Info & Notifications -->
+                    <div class="flex items-center space-x-3 border-l border-slate-700 pl-4">
+                        <button class="relative p-1.5 text-slate-300 hover:text-white transition-colors" onclick="showNotificationToast()">
+                            <i class="fa-regular fa-bell text-base"></i>
+                            <span class="absolute top-0 right-0 w-2 h-2 bg-rose-500 rounded-full ring-2 ring-corporate-900"></span>
+                        </button>
+                        <div class="flex items-center space-x-2">
+                            <div class="w-8 h-8 rounded-full bg-indigo-500 text-white flex items-center justify-center text-xs font-bold ring-2 ring-indigo-400" id="userAvatar">
+                                MS
+                            </div>
+                            <div class="hidden lg:block text-left">
+                                <p class="text-xs font-semibold leading-tight" id="userName">Marvell Sumiyko</p>
+                                <p class="text-[10px] text-indigo-300" id="userRoleTitle">Head of IT Division</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation Bar -->
+    <nav class="bg-white border-b border-slate-200 shadow-sm sticky top-16 z-30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex space-x-1 sm:space-x-8 overflow-x-auto no-scrollbar">
+                <button id="tab-dashboard" onclick="switchTab('dashboard')" class="nav-tab active border-indigo-600 text-indigo-600 border-b-2 py-3 px-3 text-xs sm:text-sm font-medium flex items-center space-x-2 whitespace-nowrap">
+                    <i class="fa-solid fa-chart-pie"></i><span>Dashboard & Approval</span>
+                </button>
+                <button id="tab-requisition" onclick="switchTab('requisition')" class="nav-tab border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 border-b-2 py-3 px-3 text-xs sm:text-sm font-medium flex items-center space-x-2 whitespace-nowrap">
+                    <i class="fa-solid fa-file-signature"></i><span>Pengajuan Requisition</span>
+                </button>
+                <button id="tab-inventory" onclick="switchTab('inventory')" class="nav-tab border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 border-b-2 py-3 px-3 text-xs sm:text-sm font-medium flex items-center space-x-2 whitespace-nowrap">
+                    <i class="fa-solid fa-boxes-stacked"></i><span>Stok & Opname Gudang</span>
+                </button>
+                <button id="tab-po" onclick="switchTab('po')" class="nav-tab border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 border-b-2 py-3 px-3 text-xs sm:text-sm font-medium flex items-center space-x-2 whitespace-nowrap">
+                    <i class="fa-solid fa-receipt"></i><span>Purchase Order & Budget</span>
+                </button>
+                <button id="tab-docs" onclick="switchTab('docs')" class="nav-tab border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 border-b-2 py-3 px-3 text-xs sm:text-sm font-medium flex items-center space-x-2 whitespace-nowrap">
+                    <i class="fa-solid fa-book"></i><span>Dokumentasi Sistem</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+        <!-- Notification Banner / Alert Placeholder -->
+        <div id="alertContainer" class="hidden mb-6 transition-all duration-300"></div>
+
+        <!-- SECTION 1: DASHBOARD & APPROVAL WORKFLOW -->
+        <section id="section-dashboard" class="space-y-6">
+            <!-- Header Summary Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- Budget Card -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Anggaran Divisi IT</p>
+                            <h3 class="text-xl font-bold text-slate-900 mt-1" id="divBudgetTotal">Rp 150.000.000</h3>
+                        </div>
+                        <div class="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl">
+                            <i class="fa-solid fa-wallet text-lg"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                        <span class="text-slate-500">Sisa Anggaran:</span>
+                        <span class="font-bold text-emerald-600" id="divBudgetRemaining">Rp 45.000.000</span>
+                    </div>
+                    <!-- Progress Bar -->
+                    <div class="w-full bg-slate-100 h-2 rounded-full mt-2 overflow-hidden">
+                        <div id="budgetProgressBar" class="bg-indigo-600 h-2 rounded-full" style="width: 70%"></div>
+                    </div>
+                </div>
+
+                <!-- Pending Approvals Card -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Menunggu Persetujuan</p>
+                            <h3 class="text-xl font-bold text-amber-600 mt-1" id="countPending">2 Pengajuan</h3>
+                        </div>
+                        <div class="p-2.5 bg-amber-50 text-amber-600 rounded-xl">
+                            <i class="fa-solid fa-clock text-lg"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-100 text-xs text-slate-500">
+                        Membutuhkan peninjauan Manager / Finance
+                    </div>
+                </div>
+
+                <!-- Ghost Inventory Alert Card -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Akurasi Stok Gudang</p>
+                            <h3 class="text-xl font-bold text-emerald-600 mt-1">99.4%</h3>
+                        </div>
+                        <div class="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl">
+                            <i class="fa-solid fa-barcode text-lg"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-100 text-xs text-slate-500 flex items-center justify-between">
+                        <span>Ghost Inventory:</span>
+                        <span class="font-bold text-slate-700">0 Selisih (Barcode Active)</span>
+                    </div>
+                </div>
+
+                <!-- Avg Proc Time -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Rata-Rata Waktu Approval</p>
+                            <h3 class="text-xl font-bold text-indigo-600 mt-1">4.2 Jam</h3>
+                        </div>
+                        <div class="p-2.5 bg-blue-50 text-blue-600 rounded-xl">
+                            <i class="fa-solid fa-bolt text-lg"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-100 text-xs text-emerald-600 font-medium">
+                        <i class="fa-solid fa-arrow-down me-1"></i> Turun dari 2 Minggu (Manual)
+                    </div>
+                </div>
+            </div>
+
+            <!-- Approval Table Container -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                        <h2 class="text-base font-bold text-slate-900">Daftar Persetujuan Pengadaan (Procurement Approval)</h2>
+                        <p class="text-xs text-slate-500">Daftar formulir pengadaan yang memerlukan aksi verifikasi dari role aktif saat ini.</p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800" id="currentRoleBadge">
+                            Role: Manager Divisi
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Table -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                <th class="py-3 px-4">No. Pengajuan</th>
+                                <th class="py-3 px-4">Item Barang</th>
+                                <th class="py-3 px-4">Divisi / Pemohon</th>
+                                <th class="py-3 px-4">Est. Biaya Total</th>
+                                <th class="py-3 px-4">Ketersediaan Stok</th>
+                                <th class="py-3 px-4">Status Flow</th>
+                                <th class="py-3 px-4 text-center">Aksi / Keputusan</th>
+                            </tr>
+                        </thead>
+                        <tbody id="requisitionTableBody" class="divide-y divide-slate-100 text-xs">
+                            <!-- Populated via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: FORM PENGAJUAN BARANG (REQUISITION FORM) -->
+        <section id="section-requisition" class="hidden space-y-6">
+            <div class="max-w-3xl mx-auto bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
+                <div class="border-b border-slate-200 pb-4 mb-6">
+                    <h2 class="text-lg font-bold text-slate-900 flex items-center space-x-2">
+                        <i class="fa-solid fa-file-pen text-indigo-600"></i>
+                        <span>Formulir Pengajuan Pengadaan Barang (E-Requisition)</span>
+                    </h2>
+                    <p class="text-xs text-slate-500 mt-1">Sistem akan memverifikasi sisa batas anggaran divisi secara otomatis sebelum diteruskan.</p>
+                </div>
+
+                <form id="procurementForm" onsubmit="handleFormSubmit(event)" class="space-y-5">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Nama Pemohon</label>
+                            <input type="text" id="reqUser" value="Marshando Tri Nugraha" readonly class="w-full bg-slate-100 border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-600 font-medium cursor-not-allowed">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Divisi Pemohon</label>
+                            <input type="text" id="reqDivisi" value="IT / Teknologi Informasi" readonly class="w-full bg-slate-100 border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-600 font-medium cursor-not-allowed">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div class="sm:col-span-2">
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Pilih Item Barang</label>
+                            <select id="reqItemSelect" onchange="calculateEstimates()" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                <option value="">-- Pilih Barang dari Katalogue --</option>
+                                <option value="1" data-price="18000000" data-name="Laptop Workstation High-End">Laptop Workstation High-End (Rp 18.000.000)</option>
+                                <option value="2" data-price="2500000" data-name="Kertas A4 & Toner Printer Batch">Kertas A4 & Toner Printer Batch (Rp 2.500.000)</option>
+                                <option value="3" data-price="4500000" data-name="Monitor Ergonomis 27 Inch">Monitor Ergonomis 27 Inch (Rp 4.500.000)</option>
+                                <option value="4" data-price="55000000" data-name="Server Rack Power Unit Upgrade">Server Rack Power Unit Upgrade (Rp 55.000.000) [2FA Required]</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Jumlah (Qty)</label>
+                            <input type="number" id="reqQty" min="1" value="1" onchange="calculateEstimates()" onkeyup="calculateEstimates()" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Alasan / Justifikasi Pengadaan</label>
+                        <textarea id="reqReason" rows="3" required placeholder="Jelaskan kebutuhan operasional pengadaan barang ini..." class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
+                    </div>
+
+                    <!-- Budget Limit Check Real-time Panel -->
+                    <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                        <div class="flex justify-between text-xs">
+                            <span class="text-slate-600 font-medium">Sisa Anggaran Divisi:</span>
+                            <span class="font-bold text-slate-800" id="formBudgetRemaining">Rp 45.000.000</span>
+                        </div>
+                        <div class="flex justify-between text-xs">
+                            <span class="text-slate-600 font-medium">Estimasi Biaya Transaksi:</span>
+                            <span class="font-bold text-indigo-600" id="formEstTotal">Rp 0</span>
+                        </div>
+                        <div id="budgetWarningBox" class="hidden p-2.5 rounded-lg bg-rose-50 text-rose-700 border border-rose-200 text-xs font-medium flex items-center space-x-2">
+                            <i class="fa-solid fa-triangle-exclamation text-rose-500 text-base"></i>
+                            <span>PERINGATAN: Estimasi biaya melebihi sisa batas anggaran divisi! Pengajuan akan diblokir oleh sistem (Budget Cap).</span>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end space-x-3 pt-2">
+                        <button type="button" onclick="resetReqForm()" class="px-4 py-2 border border-slate-300 text-slate-700 text-xs font-medium rounded-lg hover:bg-slate-50 transition-colors">Reset</button>
+                        <button type="submit" id="submitBtn" class="px-5 py-2 bg-indigo-600 text-white text-xs font-semibold rounded-lg hover:bg-indigo-700 transition-colors shadow-md shadow-indigo-200">
+                            Kirim Pengajuan (Submit)
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- SECTION 3: MANAGEMENT STOK & OPNAME (GUDANG) -->
+        <section id="section-inventory" class="hidden space-y-6">
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4 mb-6">
+                    <div>
+                        <h2 class="text-base font-bold text-slate-900 flex items-center space-x-2">
+                            <i class="fa-solid fa-boxes-packing text-indigo-600"></i>
+                            <span>Manajemen Stok & Scanner Opname Real-time</span>
+                        </h2>
+                        <p class="text-xs text-slate-500">Mencegah Ghost Inventory dengan integrasi pencatatan otomatis & verifikasi barcode/QR.</p>
+                    </div>
+                    <button onclick="openStockModal()" class="px-4 py-2 bg-slate-900 text-white text-xs font-medium rounded-lg hover:bg-slate-800 transition-colors flex items-center space-x-2">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>Tambah Item Master</span>
+                    </button>
+                </div>
+
+                <!-- Barcode Simulation Banner -->
+                <div class="p-4 bg-indigo-50 border border-indigo-100 rounded-xl mb-6 flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-indigo-600 text-white rounded-lg flex items-center justify-center font-bold">
+                            <i class="fa-solid fa-barcode text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-indigo-900">Modul Simulasi Barcode / QR Scanner</p>
+                            <p class="text-[11px] text-indigo-700">Simulasikan pemindaian barang masuk/keluar untuk memperbarui stok gudang secara otomatis.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2 w-full md:w-auto">
+                        <input type="text" id="barcodeInput" placeholder="Scan Barcode (misal: BC-1001)..." class="px-3 py-1.5 text-xs border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full md:w-48">
+                        <button onclick="simulateScan()" class="px-3 py-1.5 bg-indigo-600 text-white text-xs font-medium rounded-lg hover:bg-indigo-700 whitespace-nowrap">
+                            Simulasi Scan
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Stock Table -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                <th class="py-3 px-4">Kode Barcode</th>
+                                <th class="py-3 px-4">Nama Barang</th>
+                                <th class="py-3 px-4">Kategori Aset</th>
+                                <th class="py-3 px-4">Stok Fisik Gudang</th>
+                                <th class="py-3 px-4">Harga Satuan</th>
+                                <th class="py-3 px-4">Status Stok</th>
+                                <th class="py-3 px-4 text-center">Aksi Opname</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventoryTableBody" class="divide-y divide-slate-100 text-xs">
+                            <!-- Populated via Javascript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 4: PURCHASE ORDER (PO) & BUDGET VERIFICATION -->
+        <section id="section-po" class="hidden space-y-6">
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+                <div class="border-b border-slate-100 pb-4 mb-6">
+                    <h2 class="text-base font-bold text-slate-900 flex items-center space-x-2">
+                        <i class="fa-solid fa-file-invoice-dollar text-indigo-600"></i>
+                        <span>Modul E-Procurement: Purchase Order (PO) & Budget Cap</span>
+                    </h2>
+                    <p class="text-xs text-slate-500">PO diterbitkan secara otomatis setelah disetujui oleh Manager dan Tim Finance.</p>
+                </div>
+
+                <!-- PO List -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                <th class="py-3 px-4">No. Purchase Order</th>
+                                <th class="py-3 px-4">Ref. Requisition</th>
+                                <th class="py-3 px-4">Vendor Ditunjuk</th>
+                                <th class="py-3 px-4">Nilai Kontrak/PO</th>
+                                <th class="py-3 px-4">Tanggal Issue</th>
+                                <th class="py-3 px-4">Status Pengiriman</th>
+                                <th class="py-3 px-4 text-center">Cetak PO</th>
+                            </tr>
+                        </thead>
+                        <tbody id="poTableBody" class="divide-y divide-slate-100 text-xs">
+                            <!-- Populated via Javascript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 5: SYSTEM DOCUMENTATION & ARCHITECTURE -->
+        <section id="section-docs" class="hidden space-y-6">
+            <!-- Documentation Tabs / Cards -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                
+                <!-- Problem Statement & Fishbone Summary -->
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <h3 class="font-bold text-slate-900 text-sm mb-3 flex items-center space-x-2">
+                        <i class="fa-solid fa-vial-virus text-indigo-600"></i>
+                        <span>1. Analisis Masalah & Fishbone (Sebab-Akibat)</span>
+                    </h3>
+                    <div class="space-y-3 text-xs text-slate-600">
+                        <p><strong>Problem Statement:</strong> Formulir kertas & spreadsheet manual memicu approval 2 minggu, <em>ghost inventory</em> di gudang, dan over-budget divisi.</p>
+                        <div class="grid grid-cols-2 gap-2 pt-2">
+                            <div class="p-2.5 bg-slate-50 rounded-lg border border-slate-200">
+                                <span class="font-bold text-slate-800 block mb-1"><i class="fa-solid fa-users me-1 text-indigo-500"></i> People:</span>
+                                Keterlambatan persetujuan fisik dari pimpinan.
+                            </div>
+                            <div class="p-2.5 bg-slate-50 rounded-lg border border-slate-200">
+                                <span class="font-bold text-slate-800 block mb-1"><i class="fa-solid fa-gears me-1 text-indigo-500"></i> Process:</span>
+                                Birokrasi pengajuan bertingkat un-integrated.
+                            </div>
+                            <div class="p-2.5 bg-slate-50 rounded-lg border border-slate-200">
+                                <span class="font-bold text-slate-800 block mb-1"><i class="fa-solid fa-laptop-code me-1 text-indigo-500"></i> System:</span>
+                                Tidak ada pembaruan stok real-time gudang.
+                            </div>
+                            <div class="p-2.5 bg-slate-50 rounded-lg border border-slate-200">
+                                <span class="font-bold text-slate-800 block mb-1"><i class="fa-solid fa-database me-1 text-indigo-500"></i> Data:</span>
+                                Berkas Excel terpisah memicu data ganda.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RACI Matrix Display -->
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <h3 class="font-bold text-slate-900 text-sm mb-3 flex items-center space-x-2">
+                        <i class="fa-solid fa-users-gear text-indigo-600"></i>
+                        <span>2. RACI Matrix Stakeholder</span>
+                    </h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-[11px]">
+                            <tr class="bg-slate-100 font-bold text-slate-700">
+                                <th class="p-1.5">Aktivitas</th>
+                                <th class="p-1.5">User</th>
+                                <th class="p-1.5">Manager</th>
+                                <th class="p-1.5">Gudang</th>
+                                <th class="p-1.5">Procurement</th>
+                                <th class="p-1.5">Direksi</th>
+                            </tr>
+                            <tr class="border-b border-slate-100">
+                                <td class="p-1.5 font-medium">Requisition</td>
+                                <td class="p-1.5 text-indigo-600 font-bold">R / A</td>
+                                <td class="p-1.5">C</td>
+                                <td class="p-1.5">I</td>
+                                <td class="p-1.5">I</td>
+                                <td class="p-1.5">I</td>
+                            </tr>
+                            <tr class="border-b border-slate-100">
+                                <td class="p-1.5 font-medium">Approval Order</td>
+                                <td class="p-1.5">I</td>
+                                <td class="p-1.5 text-indigo-600 font-bold">R / A</td>
+                                <td class="p-1.5">I</td>
+                                <td class="p-1.5">C</td>
+                                <td class="p-1.5">I</td>
+                            </tr>
+                            <tr class="border-b border-slate-100">
+                                <td class="p-1.5 font-medium">Opname Gudang</td>
+                                <td class="p-1.5">I</td>
+                                <td class="p-1.5">I</td>
+                                <td class="p-1.5 text-indigo-600 font-bold">R / A</td>
+                                <td class="p-1.5">C</td>
+                                <td class="p-1.5">I</td>
+                            </tr>
+                            <tr class="border-b border-slate-100">
+                                <td class="p-1.5 font-medium">Budget & PO</td>
+                                <td class="p-1.5">I</td>
+                                <td class="p-1.5">I</td>
+                                <td class="p-1.5">C</td>
+                                <td class="p-1.5 text-indigo-600 font-bold">R / A</td>
+                                <td class="p-1.5">I</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- FURPS+ Requirements & Class Diagram -->
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm lg:col-span-2">
+                    <h3 class="font-bold text-slate-900 text-sm mb-3 flex items-center space-x-2">
+                        <i class="fa-solid fa-sitemap text-indigo-600"></i>
+                        <span>3. Arsitektur & Kebutuhan Non-Fungsional (FURPS+)</span>
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                            <span class="font-bold text-indigo-600 block mb-1">Functionality & Security</span>
+                            Verifikasi 2FA otomatis diaktifkan jika nominal transaksi melebihi Rp 50.000.000.
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                            <span class="font-bold text-indigo-600 block mb-1">Reliability & Audit</span>
+                            Pencatatan Audit Trail lengkap untuk setiap aksi approval demi mencegah tindakan <em>fraud</em>.
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                            <span class="font-bold text-indigo-600 block mb-1">Performance & Support</span>
+                            Kecepatan kalkulasi & update data < 1 detik. Mampu terintegrasi via REST API ke ERP Perusahaan.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- MODAL 2FA (FOR TRANSACTIONS > 50M) -->
+    <div id="twoFactorModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 m-4">
+            <div class="text-center">
+                <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-3 text-xl">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <h3 class="text-base font-bold text-slate-900">Verifikasi Keamanan 2FA Required</h3>
+                <p class="text-xs text-slate-500 mt-1">Transaksi pengadaan ini melebihi <strong>Rp 50.000.000</strong>. Masukkan kode otentikasi pimpinan untuk menyetujui.</p>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1 text-center">Kode Verifikasi (Simulasi: 123456)</label>
+                <input type="text" id="twoFactorInput" placeholder="123456" class="w-full text-center tracking-widest font-mono text-lg py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+            </div>
+            <div class="flex space-x-3 pt-2">
+                <button onclick="close2FAModal()" class="w-1/2 py-2 border border-slate-300 text-slate-700 text-xs font-semibold rounded-lg hover:bg-slate-50">Batal</button>
+                <button onclick="confirm2FA()" class="w-1/2 py-2 bg-indigo-600 text-white text-xs font-semibold rounded-lg hover:bg-indigo-700 shadow-md">Verifikasi & Approve</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL ADD/EDIT ITEM MASTER -->
+    <div id="stockModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 m-4">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <h3 class="text-sm font-bold text-slate-900">Tambah Item Master Barang Baru</h3>
+                <button onclick="closeStockModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form onsubmit="saveNewStockItem(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Kode Barcode / Asset Tag</label>
+                    <input type="text" id="newBarcode" required placeholder="BC-1005" class="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Nama Barang Aset</label>
+                    <input type="text" id="newName" required placeholder="Projector Wireless Portable" class="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Stok Awal Fisik</label>
+                        <input type="number" id="newStock" min="0" value="10" required class="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Harga Satuan (Rp)</label>
+                        <input type="number" id="newPrice" min="0" value="7500000" required class="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                </div>
+                <div class="flex justify-end space-x-2 pt-3 border-t border-slate-100">
+                    <button type="button" onclick="closeStockModal()" class="px-4 py-2 border border-slate-300 rounded-lg text-slate-700 font-medium">Batal</button>
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700">Simpan Barang</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // --- DATA STATE INITIALIZATION ---
+        const DIVISION_BUDGET_CAP = 150000000;
+        let remainingBudget = 45000000;
+        let currentRole = 'manager'; // Default role
+
+        // Mock Requisitions
+        let requisitions = [
+            {
+                id: 'REQ-2026-001',
+                item: 'Laptop Workstation High-End',
+                user: 'Marshando Tri Nugraha',
+                divisi: 'IT',
+                estCost: 18000000,
+                qty: 1,
+                stockAvailable: true,
+                status: 'Pending Manager',
+                reason: 'Penggantian unit laptop developer yang mengalami rusak berat.'
+            },
+            {
+                id: 'REQ-2026-002',
+                item: 'Kertas A4 & Toner Printer Batch',
+                user: 'Marvell Sumiyko',
+                divisi: 'HR',
+                estCost: 2500000,
+                qty: 1,
+                stockAvailable: true,
+                status: 'Pending Manager',
+                reason: 'Kebutuhan cetak formulir rekrutmen karyawan baru.'
+            },
+            {
+                id: 'REQ-2026-003',
+                item: 'Server Rack Power Unit Upgrade',
+                user: 'Marshando Tri Nugraha',
+                divisi: 'IT',
+                estCost: 55000000,
+                qty: 1,
+                stockAvailable: false,
+                status: 'Approved by Manager',
+                reason: 'Penambahan daya server utama untuk kebutuhan data center.'
+            }
+        ];
+
+        // Mock Inventory Items
+        let inventory = [
+            { barcode: 'BC-1001', name: 'Laptop Workstation High-End', category: 'IT Asset', stock: 3, price: 18000000 },
+            { barcode: 'BC-1002', name: 'Kertas A4 & Toner Printer Batch', category: 'ATK Operational', stock: 25, price: 2500000 },
+            { barcode: 'BC-1003', name: 'Monitor Ergonomis 27 Inch', category: 'IT Asset', stock: 8, price: 4500000 },
+            { barcode: 'BC-1004', name: 'Server Rack Power Unit Upgrade', category: 'Infrastructure', stock: 0, price: 55000000 }
+        ];
+
+        // Mock Purchase Orders
+        let purchaseOrders = [
+            {
+                poId: 'PO-2026-8801',
+                reqRef: 'REQ-2026-003',
+                vendor: 'PT Tech Infra Solusindo',
+                value: 55000000,
+                date: '2026-10-18',
+                status: 'On Shipping'
+            }
+        ];
+
+        let pending2faReqId = null;
+
+        // --- DOM LOAD INITIALIZATION ---
+        window.addEventListener('DOMContentLoaded', () => {
+            renderDashboard();
+            renderInventoryTable();
+            renderPOTable();
+            calculateEstimates();
+        });
+
+        // --- ROLE SWITCHING LOGIC ---
+        function switchRole(role) {
+            currentRole = role;
+            const badge = document.getElementById('currentRoleBadge');
+            const avatar = document.getElementById('userAvatar');
+            const name = document.getElementById('userName');
+            const title = document.getElementById('userRoleTitle');
+
+            if (role === 'karyawan') {
+                badge.innerText = 'Role: Karyawan (User)';
+                avatar.innerText = 'MT';
+                name.innerText = 'Marshando Tri Nugraha';
+                title.innerText = 'Software Engineer';
+            } else if (role === 'manager') {
+                badge.innerText = 'Role: Manager Divisi';
+                avatar.innerText = 'AA';
+                name.innerText = 'Akbar Alfarozi';
+                title.innerText = 'Head of IT Division';
+            } else if (role === 'gudang') {
+                badge.innerText = 'Role: Tim Gudang (Inventory)';
+                avatar.innerText = 'FA';
+                name.innerText = 'Farid Aldi Saputra';
+                title.innerText = 'Warehouse Lead';
+            } else if (role === 'finance') {
+                badge.innerText = 'Role: Procurement & Finance';
+                avatar.innerText = 'MS';
+                name.innerText = 'Mayang Shendy';
+                title.innerText = 'Finance Controller';
+            } else if (role === 'direksi') {
+                badge.innerText = 'Role: Direksi / Management';
+                avatar.innerText = 'RN';
+                name.innerText = 'Raffi Niagara';
+                title.innerText = 'Executive Director';
+            }
+
+            renderDashboard();
+            showAlert('Info', `Peran aktif berhasil diubah ke: ${badge.innerText}`, 'indigo');
+        }
+
+        // --- TAB SWITCHING LOGIC ---
+        function switchTab(tabName) {
+            // Hide all sections
+            ['dashboard', 'requisition', 'inventory', 'po', 'docs'].forEach(s => {
+                document.getElementById(`section-${s}`).classList.add('hidden');
+                document.getElementById(`tab-${s}`).classList.remove('active', 'border-indigo-600', 'text-indigo-600');
+                document.getElementById(`tab-${s}`).classList.add('border-transparent', 'text-slate-500');
+            });
+
+            // Show selected section
+            document.getElementById(`section-${tabName}`).classList.remove('hidden');
+            const activeTab = document.getElementById(`tab-${tabName}`);
+            activeTab.classList.add('active', 'border-indigo-600', 'text-indigo-600');
+            activeTab.classList.remove('border-transparent', 'text-slate-500');
+        }
+
+        // --- RENDER FUNCTIONS ---
+        function renderDashboard() {
+            // Update Budget Displays
+            document.getElementById('divBudgetTotal').innerText = formatRupiah(DIVISION_BUDGET_CAP);
+            document.getElementById('divBudgetRemaining').innerText = formatRupiah(remainingBudget);
+            document.getElementById('formBudgetRemaining').innerText = formatRupiah(remainingBudget);
+            
+            const usedPct = Math.round(((DIVISION_BUDGET_CAP - remainingBudget) / DIVISION_BUDGET_CAP) * 100);
+            document.getElementById('budgetProgressBar').style.width = `${usedPct}%`;
+
+            // Count Pendings
+            const pendingCount = requisitions.filter(r => r.status.includes('Pending')).length;
+            document.getElementById('countPending').innerText = `${pendingCount} Pengajuan`;
+
+            // Populate Requisition Table
+            const tbody = document.getElementById('requisitionTableBody');
+            tbody.innerHTML = '';
+
+            if (requisitions.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-slate-400">Tidak ada pengajuan barang.</td></tr>`;
+                return;
+            }
+
+            requisitions.forEach((req, idx) => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50/80 transition-colors';
+
+                // Check Stock Status
+                const stockBadge = req.stockAvailable 
+                    ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800"><i class="fa-solid fa-check me-1"></i>Tersedia Gudang</span>`
+                    : `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800"><i class="fa-solid fa-boxes-packing me-1"></i>Stok Kosong (PO)</span>`;
+
+                // Status Badge Color
+                let statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">${req.status}</span>`;
+                if (req.status.includes('Pending')) {
+                    statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700 animate-pulse">${req.status}</span>`;
+                } else if (req.status.includes('Approved') || req.status.includes('Completed')) {
+                    statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700">${req.status}</span>`;
+                } else if (req.status.includes('Rejected')) {
+                    statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700">${req.status}</span>`;
+                }
+
+                // Actions based on active role
+                let actionBtn = `<span class="text-slate-400 text-[11px] italic">Tidak ada aksi</span>`;
+
+                if (currentRole === 'manager' && req.status === 'Pending Manager') {
+                    actionBtn = `
+                        <div class="flex items-center justify-center space-x-1">
+                            <button onclick="approveRequisition('${req.id}')" class="px-2.5 py-1 bg-emerald-600 text-white rounded font-semibold hover:bg-emerald-700 shadow-sm">Setujui</button>
+                            <button onclick="rejectRequisition('${req.id}')" class="px-2.5 py-1 bg-rose-600 text-white rounded font-semibold hover:bg-rose-700 shadow-sm">Tolak</button>
+                        </div>
+                    `;
+                } else if (currentRole === 'finance' && req.status === 'Approved by Manager') {
+                    actionBtn = `
+                        <button onclick="financeVerifyPO('${req.id}')" class="px-2.5 py-1 bg-indigo-600 text-white rounded font-semibold hover:bg-indigo-700 shadow-sm">
+                            Isu Purchase Order
+                        </button>
+                    `;
+                } else if (currentRole === 'gudang' && req.status === 'Approved by Manager' && req.stockAvailable) {
+                    actionBtn = `
+                        <button onclick="releaseStockClearance('${req.id}')" class="px-2.5 py-1 bg-blue-600 text-white rounded font-semibold hover:bg-blue-700 shadow-sm">
+                            Stock Clearance
+                        </button>
+                    `;
+                }
+
+                tr.innerHTML = `
+                    <td class="py-3 px-4 font-mono font-bold text-indigo-600">${req.id}</td>
+                    <td class="py-3 px-4 font-medium text-slate-800">${req.item} <br/><span class="text-[10px] text-slate-400">Qty: ${req.qty}</span></td>
+                    <td class="py-3 px-4 text-slate-600">${req.divisi} / ${req.user}</td>
+                    <td class="py-3 px-4 font-semibold text-slate-900">${formatRupiah(req.estCost)}</td>
+                    <td class="py-3 px-4">${stockBadge}</td>
+                    <td class="py-3 px-4">${statusBadge}</td>
+                    <td class="py-3 px-4 text-center">${actionBtn}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderInventoryTable() {
+            const tbody = document.getElementById('inventoryTableBody');
+            tbody.innerHTML = '';
+
+            inventory.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50 transition-colors';
+
+                const stockStatus = item.stock > 0 
+                    ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">${item.stock} Unit In Stock</span>`
+                    : `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800">Out of Stock</span>`;
+
+                tr.innerHTML = `
+                    <td class="py-3 px-4 font-mono font-bold text-slate-700">${item.barcode}</td>
+                    <td class="py-3 px-4 font-semibold text-slate-900">${item.name}</td>
+                    <td class="py-3 px-4 text-slate-500">${item.category}</td>
+                    <td class="py-3 px-4 font-bold ${item.stock > 0 ? 'text-slate-800' : 'text-rose-600'}">${item.stock}</td>
+                    <td class="py-3 px-4 text-slate-700">${formatRupiah(item.price)}</td>
+                    <td class="py-3 px-4">${stockStatus}</td>
+                    <td class="py-3 px-4 text-center space-x-1">
+                        <button onclick="adjustStock('${item.barcode}', 1)" class="px-2 py-1 bg-slate-200 text-slate-800 rounded font-bold hover:bg-slate-300">+</button>
+                        <button onclick="adjustStock('${item.barcode}', -1)" class="px-2 py-1 bg-slate-200 text-slate-800 rounded font-bold hover:bg-slate-300">-</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderPOTable() {
+            const tbody = document.getElementById('poTableBody');
+            tbody.innerHTML = '';
+
+            if (purchaseOrders.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-slate-400">Belum ada Purchase Order (PO) yang diterbitkan.</td></tr>`;
+                return;
+            }
+
+            purchaseOrders.forEach(po => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50 transition-colors';
+
+                tr.innerHTML = `
+                    <td class="py-3 px-4 font-mono font-bold text-indigo-600">${po.poId}</td>
+                    <td class="py-3 px-4 font-mono text-slate-600">${po.reqRef}</td>
+                    <td class="py-3 px-4 font-semibold text-slate-800">${po.vendor}</td>
+                    <td class="py-3 px-4 font-bold text-slate-900">${formatRupiah(po.value)}</td>
+                    <td class="py-3 px-4 text-slate-500">${po.date}</td>
+                    <td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800">${po.status}</span></td>
+                    <td class="py-3 px-4 text-center">
+                        <button onclick="printPO('${po.poId}')" class="p-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded text-xs">
+                            <i class="fa-solid fa-print"></i> Cetak
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // --- FORM CALCULATIONS & AUTO-CHECK BUDGET CAP ---
+        function calculateEstimates() {
+            const itemSelect = document.getElementById('reqItemSelect');
+            const qtyInput = document.getElementById('reqQty');
+            const selectedOption = itemSelect.options[itemSelect.selectedIndex];
+            
+            const warningBox = document.getElementById('budgetWarningBox');
+            const submitBtn = document.getElementById('submitBtn');
+
+            if (!selectedOption || !selectedOption.value) {
+                document.getElementById('formEstTotal').innerText = 'Rp 0';
+                warningBox.classList.add('hidden');
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                return;
+            }
+
+            const unitPrice = parseFloat(selectedOption.getAttribute('data-price')) || 0;
+            const qty = parseInt(qtyInput.value) || 1;
+            const totalEst = unitPrice * qty;
+
+            document.getElementById('formEstTotal').innerText = formatRupiah(totalEst);
+
+            // AUTO-CHECK BUDGET LIMIT (FR-03 Requirement)
+            if (totalEst > remainingBudget) {
+                warningBox.classList.remove('hidden');
+                submitBtn.disabled = true;
+                submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                warningBox.classList.add('hidden');
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        function handleFormSubmit(e) {
+            e.preventDefault();
+
+            const itemSelect = document.getElementById('reqItemSelect');
+            const selectedOption = itemSelect.options[itemSelect.selectedIndex];
+            const qty = parseInt(document.getElementById('reqQty').value) || 1;
+            const reason = document.getElementById('reqReason').value;
+
+            if (!selectedOption.value) {
+                showAlert('Error', 'Silahkan pilih item barang terlebih dahulu.', 'rose');
+                return;
+            }
+
+            const unitPrice = parseFloat(selectedOption.getAttribute('data-price'));
+            const itemName = selectedOption.getAttribute('data-name');
+            const totalEst = unitPrice * qty;
+
+            // Strict Server-side Budget Check Verification
+            if (totalEst > remainingBudget) {
+                showAlert('Ditolak Sistem', 'Pengajuan diblokir karena melebihi batas anggaran (Budget Cap Limit).', 'rose');
+                return;
+            }
+
+            // Check if stock is available in warehouse
+            const invMatch = inventory.find(i => i.name === itemName);
+            const isStockAvailable = invMatch ? invMatch.stock >= qty : false;
+
+            // Create Requisition Object
+            const newReqId = `REQ-2026-00${requisitions.length + 1}`;
+            requisitions.push({
+                id: newReqId,
+                item: itemName,
+                user: 'Andi Prasetyo',
+                divisi: 'IT',
+                estCost: totalEst,
+                qty: qty,
+                stockAvailable: isStockAvailable,
+                status: 'Pending Manager',
+                reason: reason
+            });
+
+            showAlert('Pengajuan Dibuat', `Pengajuan ${newReqId} berhasil dikirim ke Manager Divisi untuk disetujui.`, 'emerald');
+            resetReqForm();
+            renderDashboard();
+            switchTab('dashboard');
+        }
+
+        function resetReqForm() {
+            document.getElementById('procurementForm').reset();
+            calculateEstimates();
+        }
+
+        // --- WORKFLOW ACTIONS (APPROVAL, 2FA & PO) ---
+        function approveRequisition(reqId) {
+            const req = requisitions.find(r => r.id === reqId);
+            if (!req) return;
+
+            // 2FA REQUIREMENT FOR TRANSACTIONS > 50,000,000 IDR (FURPS+ Requirement)
+            if (req.estCost >= 50000000) {
+                pending2faReqId = reqId;
+                document.getElementById('twoFactorModal').classList.remove('hidden');
+                return;
+            }
+
+            executeApproval(req);
+        }
+
+        function confirm2FA() {
+            const input = document.getElementById('twoFactorInput').value;
+            if (input === '123456') {
+                document.getElementById('twoFactorModal').classList.add('hidden');
+                const req = requisitions.find(r => r.id === pending2faReqId);
+                if (req) {
+                    executeApproval(req);
+                }
+                document.getElementById('twoFactorInput').value = '';
+            } else {
+                showAlert('Autentikasi Gagal', 'Kode 2FA salah! Gunakan simulasi kode: 123456', 'rose');
+            }
+        }
+
+        function close2FAModal() {
+            document.getElementById('twoFactorModal').classList.add('hidden');
+            pending2faReqId = null;
+        }
+
+        function executeApproval(req) {
+            req.status = 'Approved by Manager';
+            remainingBudget -= req.estCost; // Deduct Budget Cap
+
+            showAlert('Persetujuan Berhasil', `Pengajuan ${req.id} disetujui oleh Manager. Sisa anggaran diperbarui.`, 'emerald');
+            renderDashboard();
+        }
+
+        function rejectRequisition(reqId) {
+            const req = requisitions.find(r => r.id === reqId);
+            if (!req) return;
+
+            req.status = 'Rejected by Manager';
+            showAlert('Pengajuan Ditolak', `Pengajuan ${req.id} telah ditolak. Notifikasi dikirim ke Karyawan.`, 'rose');
+            renderDashboard();
+        }
+
+        function financeVerifyPO(reqId) {
+            const req = requisitions.find(r => r.id === reqId);
+            if (!req) return;
+
+            req.status = 'PO Issued & Vendor Process';
+
+            // Generate Purchase Order
+            const newPoId = `PO-2026-880${purchaseOrders.length + 1}`;
+            purchaseOrders.push({
+                poId: newPoId,
+                reqRef: req.id,
+                vendor: 'PT Global Tech Vendor',
+                value: req.estCost,
+                date: new Date().toISOString().split('T')[0],
+                status: 'Purchased'
+            });
+
+            showAlert('PO Diterbitkan', `Purchase Order ${newPoId} diterbitkan ke vendor untuk pengadaan ${req.item}.`, 'indigo');
+            renderDashboard();
+            renderPOTable();
+        }
+
+        function releaseStockClearance(reqId) {
+            const req = requisitions.find(r => r.id === reqId);
+            if (!req) return;
+
+            // Reduce physical warehouse stock
+            const invItem = inventory.find(i => i.name === req.item);
+            if (invItem && invItem.stock >= req.qty) {
+                invItem.stock -= req.qty;
+                req.status = 'Completed (Stock Issued)';
+                showAlert('Stock Clearance', `Barang diserahkan ke Pemohon. Stok gudang berkurang otomatis.`, 'emerald');
+                renderDashboard();
+                renderInventoryTable();
+            } else {
+                showAlert('Stok Tidak Cukup', 'Gagal memproses stock clearance. Stok di gudang tidak memadai.', 'rose');
+            }
+        }
+
+        // --- BARCODE / QR SCANNER SIMULATION ---
+        function simulateScan() {
+            const input = document.getElementById('barcodeInput').value.trim();
+            if (!input) {
+                showAlert('Info Scan', 'Masukkan kode barcode untuk memindai.', 'amber');
+                return;
+            }
+
+            const item = inventory.find(i => i.barcode.toLowerCase() === input.toLowerCase());
+            if (item) {
+                item.stock += 1;
+                showAlert('Barcode Scanned!', `Berhasil memindai ${item.name} (${item.barcode}). Stok fisik bertambah +1. Ghost Inventory tercegah.`, 'emerald');
+                renderInventoryTable();
+                document.getElementById('barcodeInput').value = '';
+            } else {
+                showAlert('Barcode Tidak Ditemukan', `Kode asset tag ${input} belum terdaftar di database master.`, 'rose');
+            }
+        }
+
+        function adjustStock(barcode, amount) {
+            const item = inventory.find(i => i.barcode === barcode);
+            if (item) {
+                if (item.stock + amount < 0) return;
+                item.stock += amount;
+                renderInventoryTable();
+            }
+        }
+
+        // --- MASTER STOCK MODAL HANDLERS ---
+        function openStockModal() {
+            document.getElementById('stockModal').classList.remove('hidden');
+        }
+
+        function closeStockModal() {
+            document.getElementById('stockModal').classList.add('hidden');
+        }
+
+        function saveNewStockItem(e) {
+            e.preventDefault();
+            const barcode = document.getElementById('newBarcode').value;
+            const name = document.getElementById('newName').value;
+            const stock = parseInt(document.getElementById('newStock').value);
+            const price = parseFloat(document.getElementById('newPrice').value);
+
+            inventory.push({
+                barcode,
+                name,
+                category: 'General Asset',
+                stock,
+                price
+            });
+
+            // Dynamically add to requisition select options
+            const select = document.getElementById('reqItemSelect');
+            const opt = document.createElement('option');
+            opt.value = inventory.length;
+            opt.setAttribute('data-price', price);
+            opt.setAttribute('data-name', name);
+            opt.innerText = `${name} (${formatRupiah(price)})`;
+            select.appendChild(opt);
+
+            closeStockModal();
+            renderInventoryTable();
+            showAlert('Aset Ditambahkan', `Item master ${name} berhasil disimpan ke database inventaris.`, 'emerald');
+        }
+
+        function printPO(poId) {
+            showAlert('Mencetak PO', `Mencetak dokumen Purchase Order ${poId}...`, 'indigo');
+        }
+
+        // --- HELPER UTILITIES ---
+        function formatRupiah(num) {
+            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(num);
+        }
+
+        function showAlert(title, message, color = 'indigo') {
+            const container = document.getElementById('alertContainer');
+            
+            let bg = 'bg-indigo-50 border-indigo-200 text-indigo-800';
+            if (color === 'emerald') bg = 'bg-emerald-50 border-emerald-200 text-emerald-800';
+            if (color === 'rose') bg = 'bg-rose-50 border-rose-200 text-rose-800';
+            if (color === 'amber') bg = 'bg-amber-50 border-amber-200 text-amber-800';
+
+            container.className = `p-4 rounded-xl border text-xs font-medium flex justify-between items-center ${bg} shadow-sm transition-all duration-300`;
+            container.innerHTML = `
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-circle-info text-base"></i>
+                    <span><strong>${title}:</strong> ${message}</span>
+                </div>
+                <button onclick="document.getElementById('alertContainer').classList.add('hidden')" class="text-slate-400 hover:text-slate-600">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            `;
+            container.classList.remove('hidden');
+
+            setTimeout(() => {
+                container.classList.add('hidden');
+            }, 5000);
+        }
+
+        function showNotificationToast() {
+            showAlert('Notifikasi', 'Anda memiliki 2 pengajuan menunggu persetujuan manager.', 'indigo');
+        }
+    </script>
+</body>
+</html>
